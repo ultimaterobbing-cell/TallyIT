@@ -45,7 +45,10 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        Task::create($this->validated($request));
+        $data = $this->validated($request);
+        $data['completed_at'] = $data['status'] === 'Completed' ? now() : null;
+
+        Task::create($data);
 
         return redirect()->route('tasks.index')->with('success', 'Task added to your list.');
     }
@@ -63,7 +66,15 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        $task->update($this->validated($request));
+        $data = $this->validated($request);
+
+        if ($data['status'] === 'Completed' && $task->status !== 'Completed') {
+            $data['completed_at'] = now();
+        } elseif ($data['status'] === 'Pending') {
+            $data['completed_at'] = null;
+        }
+
+        $task->update($data);
 
         return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
     }
@@ -80,7 +91,11 @@ class TaskController extends Controller
 
     public function toggleStatus(Task $task)
     {
-        $task->update(['status' => $task->status === 'Completed' ? 'Pending' : 'Completed']);
+        $status = $task->status === 'Completed' ? 'Pending' : 'Completed';
+        $task->update([
+            'status' => $status,
+            'completed_at' => $status === 'Completed' ? now() : null,
+        ]);
 
         return redirect()->back()->with('success', $task->status === 'Completed' ? 'Task completed.' : 'Task marked as pending.');
     }
