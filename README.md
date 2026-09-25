@@ -12,3 +12,12 @@ Database Used: Supabase PostgreSQL
 - Edit Task
 - Delete Task
 - Update Status
+
+## Status Route
+
+This Laravel web route toggles a task between Pending and Completed:
+
+```php
+Route::patch('/tasks/{task}/status', [TaskController::class, 'toggleStatus'])
+	->name('tasks.status');
+```
